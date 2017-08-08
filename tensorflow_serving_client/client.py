@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 from grpc.beta import implementations
@@ -28,5 +29,22 @@ class TensorflowServingClient(object):
             tensor_proto = response.outputs[key]
             nd_array = tf.contrib.util.make_ndarray(tensor_proto)
             results[key] = nd_array
+
+        return results
+
+    def predict(self, inputs, input_tensor_name, timeout=10.0, model_name=None):
+        request = predict_pb2.PredictRequest()
+        request.model_spec.name = model_name or 'model'
+
+        copy_message(tf.contrib.util.make_tensor_proto(np.asarray(inputs)), request.inputs[input_tensor_name])
+        response = self.execute(request, timeout=timeout)
+
+        import pdb; pdb.set_trace()
+
+        # results = {}
+        # for key in response.outputs:
+        #     tensor_proto = response.outputs[key]
+        #     nd_array = tf.contrib.util.make_ndarray(tensor_proto)
+        #     results[key] = nd_array
 
         return results
